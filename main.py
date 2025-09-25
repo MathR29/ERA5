@@ -1,3 +1,6 @@
+import os
+import cdsapi
+
 def temporal_interval(start_month, start_year, end_month, end_year):
     temp_interval = {}
     days_interval = [d.rjust(2,"0") for d in map(str,range(1,32))]
@@ -20,7 +23,6 @@ def create_requests(start_month:int,start_year:int,end_month:int,end_year:int,
     for variable in variables:
         if variable == "2m_temperature":
             for stat in ["daily_mean","daily_maximum","daily_minimum"]:
-                print(stat)
                 for year,month_day in temp_interval.items():
                     request_body = {
                     "product_type": "reanalysis",
@@ -50,9 +52,29 @@ def create_requests(start_month:int,start_year:int,end_month:int,end_year:int,
                 }
                 requests[f"{year}_{variable}"] = request_body
 
-    print(requests)
+    return requests
 
-create_requests(1,2021,2,2021,[],["2m_temperature","total_precipitation"],"utc-06:00")
+def make_request(start_month:int,start_year:int,end_month:int,end_year:int,
+                 bbox:list ,variables:list,time_zone:str):
+    
+    dataset = "derived-era5-single-levels-daily-statistics"
+    requests = create_requests(start_month,
+                            start_year,
+                            end_month,
+                            end_year,
+                            bbox,
+                            variables,
+                            time_zone)
 
+    for req_name,req in requests.items():
+        client = cdsapi.Client(
+            url = "https://cds.climate.copernicus.eu/api",
+            key = "9530b858-ba68-430c-8a18-3d3112b45ace"
+        )
+        client.retrieve(
+            dataset,
+            req,
+            target = f"{req_name}.nc"
+        )
 
-
+make_request(9,2025,10,2025,[90,90,90,90],["10m_u_component_of_wind"],"utc-06:00")
