@@ -61,6 +61,6 @@ def download_worker(task,user_key):
             key = user_key
     )
 
-    client.retrieve(dataset, req, target=f"{req_name}.nc")
+    client.retrieve(dataset, req, target=f"output/{req_name}.nc")
     return f"{req_name} done"
 
