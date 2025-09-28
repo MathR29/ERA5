@@ -1,3 +1,4 @@
+import os
 import cdsapi
 from functools import partial
 from multiprocessing import Pool
@@ -41,12 +42,16 @@ def create_all_request(variables,bbox,time_zone,
                        start_month,end_month,
                        start_year,end_year):
     requests = {}
-
+    files = os.listdir("output")
     for var in variables:
         for year in range(start_year,end_year + 1):
             for month in range(start_month,end_month + 1):
                 for req_name, req in create_request(var,bbox,time_zone,month,year):
-                    requests[req_name] = req
+                    if f"{req_name}.nc" in files:
+                        print(f"{req_name} already downloaded.")
+                        continue
+                    else:
+                        requests[req_name] = req
 
 
 
@@ -79,4 +84,3 @@ def get_era5 (variables,bbox,time_zone,
         results = pool.map(worker,requests)
         print(results)
 
-    
